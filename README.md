@@ -31,6 +31,14 @@ npm run verify:render
 The verifier expects Chrome at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`.
 Override with `CHROME_PATH` if needed.
 
+## Deploy to GitHub Pages
+
+Pushing to `main` builds and deploys the site with the included GitHub Actions workflow. Before its first run, open **Settings → Pages** in the repository and set **Source** to **GitHub Actions**. The published project site will be available at:
+
+`https://squeepty.github.io/Generative-Demo/`
+
+The Vite configuration uses relative asset paths, so the built site also works if it is later served from a custom domain.
+
 ## Project Structure
 
 ```text
