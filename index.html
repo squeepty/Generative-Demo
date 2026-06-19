@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generative Three Art</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <canvas id="art-canvas" aria-label="Generative Three.js artwork"></canvas>
+
+      <aside class="math-panel" id="math-panel" aria-label="Algorithm mathematics">
+        <div class="math-heading">
+          <span>Math</span>
+          <h2 id="math-title">Algorithm</h2>
+        </div>
+        <p id="math-summary"></p>
+        <div class="math-stack" id="math-stack"></div>
+      </aside>
+
+      <section class="control-panel" aria-label="Artwork controls">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <h1>Generative Three Art</h1>
+            <p id="seed-label">Seed 0</p>
+          </div>
+        </div>
+
+        <div class="tool-row" aria-label="Quick actions">
+          <button class="icon-button" id="shuffle-button" type="button" data-tooltip="New seed">
+            <i data-lucide="shuffle" aria-hidden="true"></i>
+            <span class="sr-only">New seed</span>
+          </button>
+          <button class="icon-button" id="pause-button" type="button" data-tooltip="Pause">
+            <i data-lucide="pause" aria-hidden="true"></i>
+            <span class="sr-only">Pause animation</span>
+          </button>
+          <button class="icon-button" id="download-button" type="button" data-tooltip="Save PNG">
+            <i data-lucide="download" aria-hidden="true"></i>
+            <span class="sr-only">Save PNG</span>
+          </button>
+        </div>
+
+        <div class="control-stack">
+          <label class="control-field">
+            <span>Algo</span>
+            <select id="algorithm-control" aria-label="Algorithm"></select>
+          </label>
+
+          <label class="control-field">
+            <span>Zoom</span>
+            <input id="zoom-control" type="range" min="65" max="180" step="1" value="100" />
+          </label>
+
+          <label class="control-field">
+            <span>Density</span>
+            <input id="density-control" type="range" min="900" max="5200" step="100" value="2600" />
+          </label>
+
+          <label class="control-field">
+            <span>Flow</span>
+            <input id="flow-control" type="range" min="0" max="100" value="54" />
+          </label>
+
+          <label class="control-field">
+            <span>Bloom</span>
+            <input id="bloom-control" type="range" min="0" max="100" value="42" />
+          </label>
+
+          <div class="swatch-grid" aria-label="Palette">
+            <button class="swatch active" type="button" data-palette="ember" data-tooltip="Ember">
+              <span style="--swatch-a: #f45b69; --swatch-b: #ffd166"></span>
+            </button>
+            <button class="swatch" type="button" data-palette="reef" data-tooltip="Reef">
+              <span style="--swatch-a: #00c2a8; --swatch-b: #7bdff2"></span>
+            </button>
+            <button class="swatch" type="button" data-palette="orchid" data-tooltip="Orchid">
+              <span style="--swatch-a: #b185db; --swatch-b: #ff99c8"></span>
+            </button>
+            <button class="swatch" type="button" data-palette="mono" data-tooltip="Mono">
+              <span style="--swatch-a: #f8fafc; --swatch-b: #94a3b8"></span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
