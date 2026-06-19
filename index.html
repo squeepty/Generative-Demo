@@ -68,18 +68,31 @@
             <input id="bloom-control" type="range" min="0" max="100" value="42" />
           </label>
 
-          <div class="swatch-grid" aria-label="Palette">
-            <button class="swatch active" type="button" data-palette="ember" data-tooltip="Ember">
-              <span style="--swatch-a: #f45b69; --swatch-b: #ffd166"></span>
-            </button>
-            <button class="swatch" type="button" data-palette="reef" data-tooltip="Reef">
-              <span style="--swatch-a: #00c2a8; --swatch-b: #7bdff2"></span>
-            </button>
-            <button class="swatch" type="button" data-palette="orchid" data-tooltip="Orchid">
-              <span style="--swatch-a: #b185db; --swatch-b: #ff99c8"></span>
-            </button>
-            <button class="swatch" type="button" data-palette="mono" data-tooltip="Mono">
-              <span style="--swatch-a: #f8fafc; --swatch-b: #94a3b8"></span>
+          <div class="palette-control">
+            <div class="swatch-grid" aria-label="Palette">
+              <button class="swatch active" type="button" data-palette="ember" data-tooltip="Ember">
+                <span style="--swatch-a: #f45b69; --swatch-b: #ffd166"></span>
+              </button>
+              <button class="swatch" type="button" data-palette="reef" data-tooltip="Reef">
+                <span style="--swatch-a: #00c2a8; --swatch-b: #7bdff2"></span>
+              </button>
+              <button class="swatch" type="button" data-palette="orchid" data-tooltip="Orchid">
+                <span style="--swatch-a: #b185db; --swatch-b: #ff99c8"></span>
+              </button>
+              <button class="swatch" type="button" data-palette="mono" data-tooltip="Mono">
+                <span style="--swatch-a: #f8fafc; --swatch-b: #94a3b8"></span>
+              </button>
+            </div>
+            <button
+              class="cycle-switch"
+              id="color-cycle-toggle"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              data-tooltip="Color cycling: off"
+            >
+              <span class="cycle-switch-track" aria-hidden="true"><span></span></span>
+              <span class="sr-only">Toggle color cycling</span>
             </button>
           </div>
         </div>

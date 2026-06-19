@@ -50,6 +50,20 @@ select {
   cursor: crosshair;
 }
 
+#art-canvas.color-cycling {
+  animation: color-cycle 16s linear infinite;
+}
+
+@keyframes color-cycle {
+  from {
+    filter: hue-rotate(0deg) saturate(1.02);
+  }
+
+  to {
+    filter: hue-rotate(360deg) saturate(1.02);
+  }
+}
+
 .control-panel {
   position: absolute;
   left: clamp(16px, 3vw, 40px);
@@ -281,6 +295,12 @@ select option {
   color: var(--text);
 }
 
+.palette-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .swatch-grid {
   display: grid;
   grid-template-columns: repeat(4, 42px);
@@ -304,6 +324,61 @@ select option {
 .swatch.active {
   border-color: rgba(255, 255, 255, 0.72);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.cycle-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.cycle-switch-track,
+.cycle-switch-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.cycle-switch-track {
+  position: relative;
+}
+
+.cycle-switch-track span {
+  width: 20px;
+  background: rgba(248, 250, 252, 0.78);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.36);
+  transition:
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.cycle-switch:hover,
+.cycle-switch:focus-visible {
+  border-color: rgba(255, 255, 255, 0.48);
+  outline: none;
+}
+
+.cycle-switch:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.26);
+}
+
+.cycle-switch[aria-checked="true"] {
+  border-color: rgba(255, 209, 102, 0.76);
+  background: linear-gradient(90deg, rgba(244, 91, 105, 0.8), rgba(255, 209, 102, 0.82), rgba(6, 214, 160, 0.78));
+}
+
+.cycle-switch[aria-checked="true"] .cycle-switch-track span {
+  background: #fffdf6;
+  transform: translateX(20px);
 }
 
 .sr-only {
@@ -369,6 +444,10 @@ select option {
   .icon-button,
   .swatch {
     width: 38px;
+  }
+
+  .palette-control {
+    gap: 10px;
   }
 
   .control-field {

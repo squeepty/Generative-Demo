@@ -101,6 +101,7 @@ const state = {
   flow,
   bloom,
   paletteName,
+  colorCycling,
   paused
 };
 ```
@@ -114,7 +115,12 @@ Control behavior:
 - `zoom`: updates live.
 - `flow`: updates live and usually controls animation speed, perturbation strength, or simulation stirring.
 - `bloom`: updates live and usually controls glow, opacity, or highlight strength.
+- `colorCycling`: toggles a continuous hue rotation over the rendered canvas. It is a display-only effect, leaves the selected palette and geometry intact, and does not rebuild the sketch.
 - `paused`: stops sketch updates while the renderer keeps drawing the current frame.
+
+The palette swatches select the sketch palette. The adjacent Color Cycling switch animates the visible
+canvas through a full hue rotation; it can be enabled or disabled at any time without changing the seed
+or regenerating the artwork.
 
 ## Sketch Contract
 

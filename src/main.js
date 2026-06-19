@@ -20,6 +20,7 @@ const shuffleButton = document.querySelector('#shuffle-button');
 const pauseButton = document.querySelector('#pause-button');
 const downloadButton = document.querySelector('#download-button');
 const swatches = [...document.querySelectorAll('.swatch')];
+const colorCycleToggle = document.querySelector('#color-cycle-toggle');
 
 for (const sketch of sketches) {
   const option = document.createElement('option');
@@ -36,6 +37,7 @@ const state = {
   flow: Number(flowControl.value) / 100,
   bloom: Number(bloomControl.value) / 100,
   paletteName: 'ember',
+  colorCycling: false,
   paused: false
 };
 
@@ -134,6 +136,13 @@ function setPaused(isPaused) {
   createIcons({ icons: { Download, Pause, Play, Shuffle } });
 }
 
+function setColorCycling(isEnabled) {
+  state.colorCycling = isEnabled;
+  colorCycleToggle.setAttribute('aria-checked', String(isEnabled));
+  colorCycleToggle.dataset.tooltip = `Color cycling: ${isEnabled ? 'on' : 'off'}`;
+  canvas.classList.toggle('color-cycling', isEnabled);
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -183,6 +192,10 @@ flowControl.addEventListener('input', () => {
 bloomControl.addEventListener('input', () => {
   state.bloom = Number(bloomControl.value) / 100;
   syncActiveSketch();
+});
+
+colorCycleToggle.addEventListener('click', () => {
+  setColorCycling(!state.colorCycling);
 });
 
 swatches.forEach((swatch) => {

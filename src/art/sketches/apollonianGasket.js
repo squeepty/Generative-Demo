@@ -146,7 +146,7 @@ export const apollonianGasket = {
   label: 'Apollonian Gasket',
   math: {
     summary:
-      'An Apollonian gasket recursively packs mutually tangent circles. Each new circle is forced by the curvatures and centers of three existing tangent neighbors.',
+      'An Apollonian gasket recursively packs mutually tangent circles. Each circle is lifted into a solid, producing a stepped three-dimensional packing governed by the same curvature rule.',
     rows: [
       {
         label: 'Curvature',
@@ -159,29 +159,34 @@ export const apollonianGasket = {
       {
         label: 'Replacement',
         body: 'Given one solution k, the other tangent circle has kNew = 2*(ka + kb + kc) - k.'
+      },
+      {
+        label: 'Relief',
+        body: 'The circle radius controls its footprint while recursion depth and position set its height, making the packing readable from an oblique view.'
       }
     ]
   },
   create({ renderer, state, palette }) {
     const circles = buildGasket(state.density, state.seed);
-    const ringGeometry = new THREE.RingGeometry(0.92, 1, 72, 1);
-    const fillGeometry = new THREE.CircleGeometry(0.92, 72);
-    const ringMaterial = new THREE.ShaderMaterial({
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
+    const diskGeometry = new THREE.CylinderGeometry(0.96, 0.96, 1, 40, 1, false);
+    diskGeometry.rotateX(Math.PI / 2);
+    const diskMaterial = new THREE.ShaderMaterial({
+      vertexColors: true,
+      side: THREE.DoubleSide,
       uniforms: {
-        uBloom: { value: state.bloom },
-        uAlpha: { value: 0.72 }
+        uBloom: { value: state.bloom }
       },
       vertexShader: `
         varying vec3 vColor;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
 
         void main() {
           vColor = instanceColor;
           mat4 instanceModel = modelMatrix * instanceMatrix;
           vec4 worldPosition = instanceModel * vec4(position, 1.0);
+          vPosition = worldPosition.xyz;
+          vNormal = normalize(mat3(instanceModel) * normal);
           gl_Position = projectionMatrix * viewMatrix * worldPosition;
         }
       `,
@@ -189,87 +194,60 @@ export const apollonianGasket = {
         precision highp float;
 
         varying vec3 vColor;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
         uniform float uBloom;
-        uniform float uAlpha;
 
         void main() {
-          vec3 color = vColor * (0.9 + uBloom * 0.85);
-          color += vec3(1.0, 0.92, 0.72) * uBloom * 0.18;
-          gl_FragColor = vec4(pow(color, vec3(0.82)), uAlpha);
+          vec3 normal = normalize(vNormal);
+          vec3 light = normalize(vec3(-0.5, 0.72, 0.68));
+          float diffuse = max(dot(normal, light), 0.0);
+          float side = pow(1.0 - abs(normal.z), 1.2);
+          float elevation = smoothstep(-0.18, 0.48, vPosition.z);
+          vec3 color = vColor * (0.32 + diffuse * 0.84 + side * 0.28);
+          color += vColor * elevation * (0.09 + uBloom * 0.24);
+          color += vec3(1.0, 0.83, 0.55) * side * uBloom * 0.16;
+          gl_FragColor = vec4(pow(color, vec3(0.84)), 1.0);
         }
       `
     });
-    const fillMaterial = new THREE.ShaderMaterial({
+    const disks = new THREE.InstancedMesh(diskGeometry, diskMaterial, circles.length);
+    const boundaryGeometry = new THREE.TorusGeometry(1.012, 0.025, 8, 96);
+    boundaryGeometry.rotateX(Math.PI / 2);
+    const boundaryMaterial = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(palette.colors[1] ?? palette.colors[0]).multiplyScalar(1.35),
       transparent: true,
-      depthTest: false,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
-      uniforms: {
-        uBloom: { value: state.bloom },
-        uAlpha: { value: 0.13 }
-      },
-      vertexShader: `
-        varying vec3 vColor;
-
-        void main() {
-          vColor = instanceColor;
-          mat4 instanceModel = modelMatrix * instanceMatrix;
-          vec4 worldPosition = instanceModel * vec4(position, 1.0);
-          gl_Position = projectionMatrix * viewMatrix * worldPosition;
-        }
-      `,
-      fragmentShader: `
-        precision highp float;
-
-        varying vec3 vColor;
-        uniform float uBloom;
-        uniform float uAlpha;
-
-        void main() {
-          vec3 color = vColor * (0.22 + uBloom * 0.18);
-          gl_FragColor = vec4(color, uAlpha);
-        }
-      `
+      opacity: 0.82
     });
-    const rings = new THREE.InstancedMesh(ringGeometry, ringMaterial, circles.length + 1);
-    const fills = new THREE.InstancedMesh(fillGeometry, fillMaterial, circles.length);
+    const boundary = new THREE.Mesh(boundaryGeometry, boundaryMaterial);
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
-    const boundaryColor = new THREE.Color(palette.colors[1] ?? palette.colors[0]).multiplyScalar(0.9);
     const object = new THREE.Group();
 
-    rings.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    fills.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    fills.renderOrder = 1;
-    rings.renderOrder = 2;
-
-    dummy.position.set(0, 0, -0.01);
-    dummy.scale.setScalar(1);
-    dummy.updateMatrix();
-    rings.setMatrixAt(0, dummy.matrix);
-    rings.setColorAt(0, boundaryColor);
+    disks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    disks.frustumCulled = false;
+    boundary.position.z = 0.01;
+    boundary.renderOrder = 2;
 
     circles.forEach((circle, index) => {
-      const z = 0.04 * Math.sin(circle.depth * 0.7 + circle.k * 0.02);
+      const angle = Math.atan2(circle.y, circle.x);
+      const z =
+        0.025 +
+        circle.depth * 0.023 +
+        Math.sin(angle * 3.0 + Math.log(circle.r) * 2.5) * (0.035 + circle.r * 0.075);
+      const thickness = 0.032 + Math.min(circle.r, 0.46) * 0.27 + (circle.depth < 3 ? 0.025 : 0);
       const circleColor = paletteColor(palette, circle, index);
 
       dummy.position.set(circle.x, circle.y, z);
-      dummy.scale.setScalar(circle.r);
+      dummy.scale.set(circle.r, circle.r, thickness);
       dummy.updateMatrix();
-      rings.setMatrixAt(index + 1, dummy.matrix);
-      rings.setColorAt(index + 1, color.copy(circleColor).multiplyScalar(1.12));
-
-      dummy.position.z = z - 0.012;
-      dummy.updateMatrix();
-      fills.setMatrixAt(index, dummy.matrix);
-      fills.setColorAt(index, color.copy(circleColor));
+      disks.setMatrixAt(index, dummy.matrix);
+      disks.setColorAt(index, color.copy(circleColor).multiplyScalar(0.98));
     });
 
-    rings.instanceMatrix.needsUpdate = true;
-    rings.instanceColor.needsUpdate = true;
-    fills.instanceMatrix.needsUpdate = true;
-    fills.instanceColor.needsUpdate = true;
-    object.add(fills, rings);
+    disks.instanceMatrix.needsUpdate = true;
+    disks.instanceColor.needsUpdate = true;
+    object.add(disks, boundary);
 
     const applyResponsiveTransform = (zoom) => {
       const isPortrait = renderer.domElement.height > renderer.domElement.width;
@@ -286,17 +264,17 @@ export const apollonianGasket = {
       },
       update(elapsed, nextState) {
         applyResponsiveTransform(nextState.zoom);
-        ringMaterial.uniforms.uBloom.value = nextState.bloom;
-        fillMaterial.uniforms.uBloom.value = nextState.bloom;
-        object.rotation.x = -0.05 + Math.sin(elapsed * 0.15) * 0.035;
-        object.rotation.y = Math.sin(elapsed * 0.11) * 0.06;
+        diskMaterial.uniforms.uBloom.value = nextState.bloom;
+        boundaryMaterial.opacity = 0.58 + nextState.bloom * 0.34;
+        object.rotation.x = -0.48 + Math.sin(elapsed * 0.15) * 0.07;
+        object.rotation.y = 0.26 + Math.sin(elapsed * 0.11) * 0.11;
         object.rotation.z = elapsed * (0.012 + nextState.flow * 0.03);
       },
       dispose() {
-        ringGeometry.dispose();
-        fillGeometry.dispose();
-        ringMaterial.dispose();
-        fillMaterial.dispose();
+        diskGeometry.dispose();
+        boundaryGeometry.dispose();
+        diskMaterial.dispose();
+        boundaryMaterial.dispose();
       }
     };
   }
