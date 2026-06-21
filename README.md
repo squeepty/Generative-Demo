@@ -2,6 +2,8 @@
 
 A Vite + Three.js generative-art playground built around a deliberately modular sketch engine.
 
+Live here: [https://squeepty.github.io/Generative-Demo/](https://squeepty.github.io/Generative-Demo/)
+
 The project is intentionally structured so new mathematical models can be added as self-contained
 sketch modules. The app shell owns the canvas, renderer, UI, shared state, lifecycle, resize handling,
 palette selection, and export controls. Each sketch owns only its own geometry, shaders, simulation
