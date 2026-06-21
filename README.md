@@ -7,6 +7,9 @@ sketch modules. The app shell owns the canvas, renderer, UI, shared state, lifec
 palette selection, and export controls. Each sketch owns only its own geometry, shaders, simulation
 state, animation behavior, mathematical description, and cleanup.
 
+See [Mathematical and Algorithm References](REFERENCES.md) for foundational and implementation-oriented
+sources for the formulas displayed in each sketch's info panel.
+
 ## Quick Start
 
 ```bash
