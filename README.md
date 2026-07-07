@@ -63,15 +63,29 @@ The Vite configuration uses relative asset paths, so the built site also works i
         └── sketches/
             ├── index.js
             ├── apollonianGasket.js
+            ├── apollonianSpherePacking.js
             ├── cliffordAttractor.js
             ├── hopfFibration.js
+            ├── juliaSet.js
+            ├── kaleidoscopicIfsCrystal.js
+            ├── kleinianLimitSet.js
+            ├── kleinianSphereInversion.js
             ├── lorenzAttractor.js
+            ├── mandelbrotSet.js
+            ├── mandelboxFractal.js
             ├── mandelbulbFractal.js
+            ├── mandelbulbHybrid.js
+            ├── mengerFractalOrb.js
             ├── mengerSponge.js
             ├── mesmerLoop.js
+            ├── nebulabrot.js
+            ├── newtonBasins.js
             ├── penroseTiling.js
+            ├── polarTunnel.js
+            ├── quaternionJuliaSet.js
             ├── reactionDiffusion.js
             ├── sierpinskiCarpet.js
+            ├── sierpinskiTetrahedron.js
             ├── spiralStrands.js
             └── waveLattice.js
 ```
@@ -182,14 +196,28 @@ export const sketches = [
   spiralStrands,
   waveLattice,
   reactionDiffusion,
+  juliaSet,
+  mandelbrotSet,
+  newtonBasins,
+  nebulabrot,
+  mandelboxFractal,
+  mengerFractalOrb,
+  quaternionJuliaSet,
+  kaleidoscopicIfsCrystal,
+  kleinianLimitSet,
+  kleinianSphereInversion,
+  polarTunnel,
   penroseTiling,
   apollonianGasket,
+  apollonianSpherePacking,
   sierpinskiCarpet,
+  sierpinskiTetrahedron,
   mengerSponge,
   hopfFibration,
   lorenzAttractor,
   cliffordAttractor,
   mandelbulbFractal,
+  mandelbulbHybrid,
   mesmerLoop
 ];
 ```
@@ -250,18 +278,18 @@ Point-cloud sketches:
 
 - Build typed arrays for positions, colors, sizes, and phases.
 - Delegate the common shader and animation behavior to `createPointCloudSketch`.
-- Good for attractors, sampled fractals, particle fields, and discrete mathematical point sets.
+- Good for attractors, Nebulabrot orbits, sampled limit sets, particle fields, and discrete mathematical point sets.
 
 Instanced geometry sketches:
 
 - Use `THREE.InstancedMesh` to draw many repeated primitives with one geometry and one material.
-- Good for recursive solids or repeated rings.
+- Good for recursive solids, tangent sphere packings, or repeated rings.
 
 Full-screen shader sketches:
 
 - Render a plane in front of the camera.
 - Use fragment shaders for raymarching, procedural fields, or screen-space animation.
-- Good for Mandelbulb and Mesmer Loop.
+- Good for Mandelbrot Set, Julia Set, Newton Basins, Polar Tunnel, Mandelbox, Menger Fractal Orb, Quaternion Julia Set, Kaleidoscopic IFS Crystal, Mandelbulb, Mandelbulb Hybrid, and Mesmer Loop.
 
 GPU simulation sketches:
 
@@ -324,6 +352,187 @@ dB/dt = Db*laplace(B) + A*B^2 - (kill + feed)*B
 
 Renderer family: GPU simulation plus full-screen display shader.
 
+### Julia Set
+
+File: `src/art/sketches/juliaSet.js`
+
+A seeded quadratic Julia set. The seed chooses the complex constant `c`, then the fragment shader uses
+smooth escape-time coloring and orbit traps to draw connected bulbs, spirals, and filamented boundaries.
+
+Model:
+
+```text
+z[n+1] = z[n]^2 + c
+```
+
+Renderer family: full-screen procedural fragment shader.
+
+### Mandelbrot Set
+
+File: `src/art/sketches/mandelbrotSet.js`
+
+A seeded Mandelbrot viewport. Each pixel supplies the complex coordinate `c`; the shader iterates from
+`z = 0`, colors exterior points by smooth escape time, and uses the derivative `dz/dc` to accent the
+boundary.
+
+Model:
+
+```text
+z[0] = 0
+z[n+1] = z[n]^2 + c
+```
+
+Renderer family: full-screen procedural fragment shader.
+
+### Newton Basins
+
+File: `src/art/sketches/newtonBasins.js`
+
+Newton's method is run independently for each screen pixel against `z^k - 1`. Pixels are colored by
+the root of unity they converge to, and slow convergence highlights the fractal borders between
+attraction basins.
+
+Model:
+
+```text
+z[n+1] = z[n] - f(z[n]) / fPrime(z[n])
+f(z) = z^k - 1
+```
+
+Renderer family: full-screen procedural fragment shader.
+
+### Nebulabrot
+
+File: `src/art/sketches/nebulabrot.js`
+
+A Buddhabrot-style orbit-density rendering. The sketch samples complex values `c`, keeps only
+escaping Mandelbrot orbits, then plots the intermediate `z` positions as an additive glowing cloud.
+
+Model:
+
+```text
+z[0] = 0
+z[n+1] = z[n]^2 + c
+plot z[1..escape] only if the orbit escapes
+```
+
+Renderer family: additive point cloud.
+
+### Mandelbox Fractal
+
+File: `src/art/sketches/mandelboxFractal.js`
+
+A raymarched folding fractal built from repeated box folds, sphere folds, and scaling. The distance
+estimate makes it render as a dense architectural volume.
+
+Model:
+
+```text
+z = clamp(z, -1, 1)*2 - z
+z *= fixedRadius^2 / |z|^2 when inside the sphere fold
+z = scale*z + p
+```
+
+Renderer family: full-screen raymarch shader.
+
+### Menger Fractal Orb
+
+File: `src/art/sketches/mengerFractalOrb.js`
+
+A raymarched sphere carved by recursive Menger-style cross tunnels. It uses the sponge's central-third
+removal rule, but starts from a spherical signed-distance field rather than a cube.
+
+Model:
+
+```text
+d = |p| - r
+at scales 1, 3, 9, ... subtract cells where two coordinates are in the central third
+```
+
+Renderer family: full-screen raymarch shader.
+
+### Quaternion Julia Set
+
+File: `src/art/sketches/quaternionJuliaSet.js`
+
+A raymarched three-dimensional slice through a quaternion Julia set. Quaternion iteration creates
+bulbous lobes, pinched tunnels, and folded boundary detail that differs from the spherical Mandelbulb.
+
+Model:
+
+```text
+q[n+1] = q[n]^2 + c
+d ~= 0.5 * |q| * log(|q|) / dr
+```
+
+Renderer family: full-screen raymarch shader.
+
+### Kaleidoscopic IFS Crystal
+
+File: `src/art/sketches/kaleidoscopicIfsCrystal.js`
+
+A project-authored kaleidoscopic iterated function system. Mirror folds and coordinate sorting reflect
+space into a symmetric wedge, then repeated scale-offset steps produce nested crystalline chambers.
+
+Model:
+
+```text
+p = abs(p); sort coordinates into a symmetric wedge
+p[n+1] = s*p[n] - offset*(s - 1)
+```
+
+Renderer family: full-screen raymarch shader.
+
+### Kleinian Limit Set
+
+File: `src/art/sketches/kleinianLimitSet.js`
+
+A point-sampled limit set inspired by Kleinian-group inversions. Repeated circle inversions produce
+nested pearl-like chains and dense boundary structure.
+
+Model:
+
+```text
+pNew = center + r^2 * R(theta) * (p - center) / |p - center|^2
+```
+
+Renderer family: point cloud.
+
+### Kleinian Sphere Inversion
+
+File: `src/art/sketches/kleinianSphereInversion.js`
+
+A three-dimensional sphere-inversion sampler. Seeded inversion spheres act as generators, and a
+bounded random walk through those generators accumulates nested pearl shells and tunnel-like chains.
+
+Model:
+
+```text
+pNew = center + r^2 * R(axis,theta) * (p - center) / |p - center|^2
+```
+
+Renderer family: point cloud.
+
+### Polar Tunnel
+
+File: `src/art/sketches/polarTunnel.js`
+
+A procedural tunnel built by converting screen coordinates to polar angle and reciprocal radius. The
+shader repeats rings and spokes in this transformed space, then advances depth over time to create
+forward motion.
+
+Model:
+
+```text
+r = length(p)
+theta = atan(y, x)
+depth = 1 / max(r, epsilon)
+u = theta + twist*depth
+v = depth + time*speed
+```
+
+Renderer family: full-screen procedural fragment shader.
+
 ### Penrose Tiling
 
 File: `src/art/sketches/penroseTiling.js`
@@ -358,6 +567,23 @@ kNew = 2*(ka + kb + kc) - k
 
 Renderer family: instanced rings and fills.
 
+### Apollonian Sphere Packing
+
+File: `src/art/sketches/apollonianSpherePacking.js`
+
+A three-dimensional Apollonian packing built from five mutually tangent spheres. The sketch starts
+with four equal spheres inside an enclosing negative-curvature sphere, then recursively replaces one
+sphere with the alternate tangent solution.
+
+Model:
+
+```text
+(b1 + b2 + b3 + b4 + b5)^2 = 3*(b1^2 + b2^2 + b3^2 + b4^2 + b5^2)
+bNew = sum(other bends) - b
+```
+
+Renderer family: translucent instanced spheres.
+
 ### Sierpinski Carpet
 
 File: `src/art/sketches/sierpinskiCarpet.js`
@@ -374,6 +600,22 @@ dimension = log(8) / log(3)
 ```
 
 Renderer family: point cloud.
+
+### Sierpinski Tetrahedron
+
+File: `src/art/sketches/sierpinskiTetrahedron.js`
+
+The tetrahedral analogue of the Sierpinski triangle. Each tetrahedron is replaced by four half-scale
+tetrahedra placed at the vertices, leaving the central octahedral void open.
+
+Model:
+
+```text
+p[n+1] = (p[n] + v[k]) / 2
+dimension = log(4) / log(2)
+```
+
+Renderer family: instanced tetrahedra.
 
 ### Menger Sponge
 
@@ -453,6 +695,23 @@ Model:
 ```text
 r, theta, phi = spherical(z)
 z = r^8 * (sin(8theta)cos(8phi), sin(8theta)sin(8phi), cos(8theta)) + c
+d ~= 0.5 * log(r) * r / dr
+```
+
+Renderer family: full-screen raymarch shader.
+
+### Mandelbulb Hybrid
+
+File: `src/art/sketches/mandelbulbHybrid.js`
+
+A project-authored Mandelbulb variant. The shader folds space with absolute-value and box-fold steps
+before applying a spherical power map, producing coral-like ridges and nested lobes.
+
+Model:
+
+```text
+z = abs(z); z = clamp(z, -fold, fold)*2 - z
+z = r^p * spherical(p*theta, p*phi) + c*p0
 d ~= 0.5 * log(r) * r / dr
 ```
 
